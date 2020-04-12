@@ -9,6 +9,7 @@ import {
 import { feature } from "topojson-client";
 import { Motion, spring } from "react-motion";
 import WheelReact from "wheel-react";
+import countryData from "./assets/country_data.json"
 
 class App extends Component {
   constructor() {
@@ -59,30 +60,21 @@ class App extends Component {
         }
         response.json().then(worldData => {
 
-          var isoUrl = 'https://raw.githubusercontent.com/lukes/ISO-3166-Countries-with-Regional-Codes/master/all/all.json';
+          let data = feature(worldData, worldData.objects.countries).features;
 
-          fetch(isoUrl)
-            .then(response => response.json())
-            .then(cIso => {
+          // Remove Antarctica and invalid iso codes
+          data = data.filter(x => +x.id !== 10 ? 1 : 0)
+          
+          let essentialData = ["name", "capital", "population", "area", "flag"];
 
-              var data = feature(worldData, worldData.objects.countries).features;
+          data.filter(x => (+x.id !== -99) ? 1 : 0).forEach(x => {
+            let y = countryData.find(c => +c["numericCode"] === +x.id)
 
-              // Remove Antarctica
-              data = data.filter(x => +x.id !== 10 ? 1:0)
-
-              data.filter(x => (+x.id !== -99) ? 1:0).forEach(x => {
-                let y = cIso.find(c => +c["country-code"] === +x.id)
-                x.properties = {
-                  name: y.name,
-                  acronym: y['alpha-3'],
-                  region: y.region,
-                  'sub-region': y['sub-region'],
-                  'intermediate-region': y['intermediate-region']
-                }
-              })
-
-              this.setState({ geographyPaths: data })
+            essentialData.forEach(key => {
+              x.properties[key] = y[key]
             })
+          })
+          this.setState({ geographyPaths: data })
         })
       })
   }
@@ -129,7 +121,7 @@ class App extends Component {
         <button onClick={ this.handleZoomIn }>{ "Zoom in" }</button>
         <button onClick={this.handleZoomOut}>{"Zoom out"}</button>
         <button onClick={this.handleReset}>{"Reset view"}</button>
-        
+
         <div {...WheelReact.events}>
           <Motion
             defaultStyle={{
