@@ -1,5 +1,6 @@
-import React, { Component } from 'react';
-import './App.css';
+import React, { Component } from "react";
+import WorldMap from "./components/WorldMap";
+import "./App.css";
 
 class App extends Component {
   render() {
@@ -8,6 +9,7 @@ class App extends Component {
         <header className="App-header">
           <h1 className="App-title">Map quiz</h1>
         </header>
+        <WorldMap className="center"></WorldMap>
       </div>
     );
   }
