@@ -35,6 +35,10 @@ class WorldMap extends Component {
             .then(response => response.json())
             .then(cIso => {
               let data = feature(worldData, worldData.objects.countries).features;
+
+              //Remove Antarctica
+              data = data.filter(x => +x.id !== 10 ? 1 : 0)
+              
               data.filter(x => (
                 +x.id !== -99
               ) ? 1 : 0).forEach(x => {
