@@ -10,6 +10,7 @@ import { feature } from "topojson-client"
 import { Motion, spring } from "react-motion"
 import WheelReact from 'wheel-react';
 import countryData from "./assets/country_data.json"
+import InfoTab from "./components/infoTab.js"
 
 class App extends Component {
   constructor() {
@@ -19,7 +20,7 @@ class App extends Component {
       center: [0,0],
       zoom: 1,
       geographyPaths: [],
-      selected: null,
+      selectedProperties: "",
       disableOptimization: false,
     }
 
@@ -63,12 +64,12 @@ class App extends Component {
         }
         response.json().then(worldData => {
 
-          let data = feature(worldData, worldData.objects.countries).features;
+          var data = feature(worldData, worldData.objects.countries).features;
 
           // Remove Antarctica and invalid iso codes
           data = data.filter(x => +x.id !== 10 ? 1:0);
 
-          let essentialData = ["name", "capital", "population", "area", "flag"];
+          var essentialData = ["name", "capital", "population", "area", "flag"];
 
           data.filter(x => (+x.id !== -99) ? 1:0).forEach(x => {
             let y = countryData.find(c => +c["numericCode"] === +x.id)
@@ -77,6 +78,7 @@ class App extends Component {
               x.properties[key] = y[key]
             })
           })
+
           this.setState({ geographyPaths: data })
         })
       })
@@ -112,10 +114,8 @@ class App extends Component {
   handleCountryClick(geo) {
     this.setState(prevState => ({
       disableOptimization: true,
-      selected: prevState.selected !== geo.properties.name ? geo.properties.name : null
-      }), () => {
-        this.setState({ disableOptimization: false })
-        , console.log(geo.properties)}
+      selectedProperties: prevState.selectedProperties !== geo.properties ? geo.properties : "",
+      }), () => { this.setState({ disableOptimization: false }) }
     )
   }
 
@@ -129,6 +129,8 @@ class App extends Component {
         <button onClick={ this.handleZoomIn }>{ "Zoom in" }</button>
         <button onClick={ this.handleZoomOut }>{ "Zoom out" }</button>
         <button onClick={ this.handleReset }>{ "Reset view" }</button>
+        
+        <InfoTab country={this.state.selectedProperties}/>
 
         <div {...WheelReact.events}>
           <Motion
@@ -165,25 +167,26 @@ class App extends Component {
                   >
                     {(geographies, projection) => 
                       geographies.map((geography, i) => {
-                        const isSelected = this.state.selected === geography.properties.name
-                        return (
-                          <Geography
-                            key={ `geography-${i}` }
-                            cacheId={ `geography-${i}` }
-                            geography={ geography }
-                            projection={ projection }
-                            onClick={this.handleCountryClick}
-                            fill="white"
-                            stroke="black"
-                            strokeWidth={ 0.1 }
-                            style={{
-                              default: { fill : isSelected ? "#F0F8FF" : "FFF"},
-                              hover:   { fill : isSelected ? "#F0F8FF" : "#F5F5F5" },
-                              pressed: { fill : "#C0C0C0" },
-                            }}
-                          />
-                        )
-                      }
+                      const isSelected = this.state.selectedProperties === geography.properties
+                      return (
+                      <Geography
+                        key={ `geography-${i}` }
+                        cacheId={ `geography-${i}` }
+                        geography={ geography }
+                        projection={ projection }
+                        onClick={this.handleCountryClick}
+
+                        fill="white"
+                        stroke="black"
+                        strokeWidth={ 0.1 }
+
+                        style={{
+                          default: { fill : isSelected ? "#F0F8FF" : "FFF"},
+                          hover:   { fill : isSelected ? "#F0F8FF" : "#F5F5F5" },
+                          pressed: { fill : "#C0C0C0" },
+                        }}
+                      />
+                      )}
                     )}
                   </Geographies>
                 </ZoomableGroup>
