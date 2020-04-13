@@ -5,10 +5,10 @@ import {
   ZoomableGroup,
   Geographies,
   Geography,
-} from "react-simple-maps";
-import { feature } from "topojson-client";
-import { Motion, spring } from "react-motion";
-import WheelReact from "wheel-react";
+} from "react-simple-maps"
+import { feature } from "topojson-client"
+import { Motion, spring } from "react-motion"
+import WheelReact from 'wheel-react';
 import countryData from "./assets/country_data.json"
 
 class App extends Component {
@@ -18,12 +18,14 @@ class App extends Component {
     this.state = {
       center: [0,0],
       zoom: 1,
-      geographyPaths: []
+      geographyPaths: [],
+      selected: null,
+      disableOptimization: false,
     }
 
     WheelReact.config({
       left: () => {
-        // console.log("wheel left detected");
+        // console.log('wheel left detected.');
       },
       right: () => {
         // console.log('wheel right detected.');
@@ -36,18 +38,19 @@ class App extends Component {
         // console.log('wheel down detected.');
         this.handleZoomIn()
       }
-    })
+    });
 
     this.handleZoomIn = this.handleZoomIn.bind(this)
-    this.handleZoomOut = this.handleZoomOut.bind(this)  
-    this.handleReset= this.handleReset.bind(this)
+    this.handleZoomOut = this.handleZoomOut.bind(this)    
+    this.handleReset = this.handleReset.bind(this)
+    this.handleCountryClick = this.handleCountryClick.bind(this)
   }
 
   componentDidMount() {
     this.loadPaths()
   }
 
-  componentWillUnmount() {
+  componentWillUnmount () {
     WheelReact.clearTimeout();
   }
 
@@ -63,11 +66,11 @@ class App extends Component {
           let data = feature(worldData, worldData.objects.countries).features;
 
           // Remove Antarctica and invalid iso codes
-          data = data.filter(x => +x.id !== 10 ? 1 : 0)
-          
+          data = data.filter(x => +x.id !== 10 ? 1:0);
+
           let essentialData = ["name", "capital", "population", "area", "flag"];
 
-          data.filter(x => (+x.id !== -99) ? 1 : 0).forEach(x => {
+          data.filter(x => (+x.id !== -99) ? 1:0).forEach(x => {
             let y = countryData.find(c => +c["numericCode"] === +x.id)
 
             essentialData.forEach(key => {
@@ -93,7 +96,7 @@ class App extends Component {
 
   handleReset() {
     this.setState({
-      center: [0, Math.random() / 1000],
+      center: [0,Math.random()/1000],
       zoom: 1,
     })
   }
@@ -106,9 +109,14 @@ class App extends Component {
     // console.log("New center: ", newCenter)
   }
 
-  handleCountryClick(countryIndex) {
-    let x = this.state.geographyPaths[countryIndex].properties
-    console.log(x);
+  handleCountryClick(geo) {
+    this.setState(prevState => ({
+      disableOptimization: true,
+      selected: prevState.selected !== geo.properties.name ? geo.properties.name : null
+      }), () => {
+        this.setState({ disableOptimization: false })
+        , console.log(geo.properties)}
+    )
   }
 
   render() {
@@ -119,8 +127,8 @@ class App extends Component {
         </header>
 
         <button onClick={ this.handleZoomIn }>{ "Zoom in" }</button>
-        <button onClick={this.handleZoomOut}>{"Zoom out"}</button>
-        <button onClick={this.handleReset}>{"Reset view"}</button>
+        <button onClick={ this.handleZoomOut }>{ "Zoom out" }</button>
+        <button onClick={ this.handleReset }>{ "Reset view" }</button>
 
         <div {...WheelReact.events}>
           <Motion
@@ -151,27 +159,32 @@ class App extends Component {
                   onMoveStart={this.handleMoveStart}
                   onMoveEnd={this.handleMoveEnd}
                 >
-                  <Geographies geography={ this.state.geographyPaths }>
+                  <Geographies 
+                    geography={ this.state.geographyPaths }
+                    disableOptimization={this.state.disableOptimization}
+                  >
                     {(geographies, projection) => 
-                      geographies.map((geography, i) => (
-                      <Geography
-                        key={ `geography-${i}` }
-                        cacheId={ `geography-${i}` }
-                        geography={ geography }
-                        projection={ projection }
-                        onClick={() => this.handleCountryClick(i)}
-
-                        fill="white"
-                        stroke="black"
-                        strokeWidth={ 0.1 }
-
-                        style={{
-                          default: { fill: "#FFF" },
-                          hover:   { fill: "#F5F5F5" },
-                          pressed: { fill: "#C0C0C0" },
-                        }}
-                      />
-                    ))}
+                      geographies.map((geography, i) => {
+                        const isSelected = this.state.selected === geography.properties.name
+                        return (
+                          <Geography
+                            key={ `geography-${i}` }
+                            cacheId={ `geography-${i}` }
+                            geography={ geography }
+                            projection={ projection }
+                            onClick={this.handleCountryClick}
+                            fill="white"
+                            stroke="black"
+                            strokeWidth={ 0.1 }
+                            style={{
+                              default: { fill : isSelected ? "#F0F8FF" : "FFF"},
+                              hover:   { fill : isSelected ? "#F0F8FF" : "#F5F5F5" },
+                              pressed: { fill : "#C0C0C0" },
+                            }}
+                          />
+                        )
+                      }
+                    )}
                   </Geographies>
                 </ZoomableGroup>
               </ComposableMap>
