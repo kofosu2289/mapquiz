@@ -198,7 +198,12 @@ class App extends Component {
         return quizAnswers
       }, quizAnswers)
 
-    this.setState({quizAnswers, activeQuestionNum: 0, selectedProperties: ""})    
+    this.setState({ quizAnswers, activeQuestionNum: 0, viewInfoDiv: false }
+      , () => {
+        setTimeout(() => {
+          this.setState({ selectedProperties: ""}, this.handleMapRefresh)
+        }, infoDuration)
+       })    
   }
 
   handleAnswer(userGuess = null, testing = null){
@@ -256,14 +261,18 @@ class App extends Component {
         onClick={() => {
           this.setState(prevState =>
             ({
-              selectedProperties: "",
+              viewInfoDiv: false,
               activeQuestionNum: prevState.activeQuestionNum + 1,
               disableOptimization: true
             })
-            , () => { this.setState({ disableOptimization: false }) }
+            , () => {
+              setTimeout(() => {
+                this.setState({ selectedProperties: ""}, this.handleMapRefresh)
+              }, infoDuration)
+            }
           )
         }
-        }>NEXT</button>;
+      }>NEXT</button>;
     }
 
     return (
@@ -385,6 +394,8 @@ class App extends Component {
                     {(geographies, projection) => 
                       geographies.map((geography, i) => {
                       
+                        console.log(geography)
+                        
                       let defaultColor, hoverColor, render;
                         
                       [defaultColor, hoverColor, render] = ColorPicker(this.state, geography)
