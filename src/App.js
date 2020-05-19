@@ -391,6 +391,7 @@ class App extends Component {
             )}
           </Motion>
         </div>
+        <footer><div>Copyright © 2020 Kenneth Ofosu. All rights reserved.</div></footer>
       </div>
     );
   }
