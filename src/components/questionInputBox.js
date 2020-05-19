@@ -20,7 +20,7 @@ class QuestionInputBox extends Component {
   handleSubmit(e) {
     e.preventDefault();
     if (this.state.userGuess.length !== 0) {
-      let result = this.props.answerResultFunc(this.state.userGuess)
+      let result = this.props.answerResultFunc(this.state.userGuess, this.props.testing)
 
       this.setState({userGuess: "", answerResult: result})
     }
@@ -34,7 +34,7 @@ class QuestionInputBox extends Component {
     } else {
       next =
         <div>
-          <p>Enter the name of the higlighted country</p>
+        <p>Enter the {this.props.testing } of the highlighted country</p>
             <form onSubmit={this.handleSubmit}>
               <input type="text" value={this.state.userGuess} onChange={this.handleChange} />
               <button type="submit">Submit</button>

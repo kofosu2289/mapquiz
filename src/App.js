@@ -186,7 +186,7 @@ class App extends Component {
     this.setState({quizAnswers, activeQuestionNum: 0})    
   }
 
-  handleAnswer(userGuess = null){
+  handleAnswer(userGuess = null, testing = null){
     let ans = this.state.quizGuesses;
     let cor = this.state.quizAnswers;
     let idx = this.state.activeQuestionNum;
@@ -194,11 +194,23 @@ class App extends Component {
 
     if(userGuess) {
       let correctAlpha = this.state.quizAnswers[this.state.activeQuestionNum]
-      let correctNames = this.state.geographyPaths
-        .find(geo => geo.properties.alpha3Code === correctAlpha )
-        .properties.name;
 
-      let result = correctNames.some(name => userGuess.toLowerCase() === name.toLowerCase())
+      let answer, result;
+      
+      if(testing === "name") {
+
+        answer = this.state.geographyPaths
+          .find(geo => geo.properties.alpha3Code === correctAlpha )
+          .properties.spellings;
+
+        result = answer.some(name => userGuess.toLowerCase() === name.toLowerCase())
+      } else {
+        answer = this.state.geographyPaths
+          .find(geo => geo.properties.alpha3Code === correctAlpha )
+          .properties.capital;
+          
+        result = userGuess.toLowerCase() === answer.toLowerCase()
+      }
 
       text = `${userGuess} is ${result ? "correct!":"incorrect!"}`;
 
@@ -227,7 +239,7 @@ class App extends Component {
       }
     }>NEXT</button>;
 
-    if(idx === cor.length) {
+    if(idx === cor.length){
       var score = ans
         .reduce((total, x, i) => {
           if(x.length === 2) {
@@ -236,7 +248,7 @@ class App extends Component {
             return total += (x === cor[i])*1            
           }
         }, 0);
-      var scoreText = <p>Your score is {score} / {cor.length} or {Math.round(score / cor.length * 100)}%</p>
+      var scoreText = <p>Your score is {score} / {cor.length} or {Math.round(score/cor.length*100)}%</p>
       text = "";
       next = "";
     }
