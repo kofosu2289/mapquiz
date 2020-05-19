@@ -42,6 +42,14 @@ class QuestionInputBox extends Component {
         </div>
     }
 
+    if (this.props.activeNum === this.props.quizAnswers.length) {
+      let result = this.props.answerResultFunc()
+      next = 
+        <div>
+          {result}
+        </div>
+    }
+
     return (
       <div>
         {next}
