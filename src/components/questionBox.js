@@ -8,8 +8,10 @@ const QuestionBox = (props) => {
     .find(x => x.properties["alpha3Code"] === alpha)
     .properties.name;
   
-  answerResult = props.answerResultFunc()
-
+  if (props.activeNum === props.quizGuesses, length - 1) {
+    answerResult = props.answerResultFunc()
+  }
+  
   return (
     <div>
       Where is {country}?
