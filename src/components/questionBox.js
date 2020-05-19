@@ -12,6 +12,10 @@ const QuestionBox = (props) => {
     answerResult = props.answerResultFunc()
   }
 
+  if (props.testing === "flag") {
+    country = <div><img src={country} display="block" height="100px" border="1px solid black" alt=""/></div>
+  }
+
   if (props.activeNum !== props.quizAnswers.length) {
     questionBoxContent = 
       <div>
