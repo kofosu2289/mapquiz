@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Button, Input } from 'semantic-ui-react'
 
 class QuestionInputBox extends Component {
   constructor(props) {
@@ -13,36 +14,37 @@ class QuestionInputBox extends Component {
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
-  handleChange(e) {
-    this.setState({ userGuess: e.target.value });
+  handleChange(event) {
+    this.setState({userGuess: event.target.value});
   }
 
-  handleSubmit(e) {
-    e.preventDefault();
-    if (this.state.userGuess.length !== 0) {
-      let result = this.props.answerResultFunc(this.state.userGuess, this.props.testing)
-
-      this.setState({userGuess: "", answerResult: result})
+  handleSubmit(event) {
+    event.preventDefault();
+    if(this.state.userGuess.length !== 0) {
+      let answerResult = this.props.answerResultFunc(this.state.userGuess, this.props.testing)
+  
+      this.setState({userGuess: "", answerResult})
     }
   }
 
   render() {
+
     let next
 
-    if (this.props.activeNum === this.props.quizGuesses.length - 1) {
+    if(this.props.activeNum === this.props.quizGuesses.length - 1) {
       next = this.state.answerResult;
     } else {
-      next =
+      next = 
         <div>
-        <p>Enter the {this.props.testing } of the highlighted country</p>
-            <form onSubmit={this.handleSubmit}>
-              <input type="text" autoFocus value={this.state.userGuess} onChange={this.handleChange} />
-              <button type="submit">Submit</button>
-            </form>
+          <p>Enter the { this.props.testing } of the highlighted country</p>
+          <form onSubmit={this.handleSubmit}>
+            <Input type="text" autoFocus value={this.state.userGuess} onChange={this.handleChange} />
+            <Button type="submit" size="large" className="qSubmit">Submit</Button>
+          </form>
         </div>
     }
 
-    if (this.props.activeNum === this.props.quizAnswers.length) {
+    if(this.props.activeNum === this.props.quizAnswers.length) {
       let result = this.props.answerResultFunc()
       next = 
         <div>
@@ -51,7 +53,7 @@ class QuestionInputBox extends Component {
     }
 
     return (
-      <div>
+      <div className="qInputBox">
         {next}
       </div>
     )
