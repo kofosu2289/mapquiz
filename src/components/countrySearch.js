@@ -6,14 +6,19 @@ import { geoPath } from "d3-geo"
 export default class CountrySearch extends Component {
   render() {
     let countries = this.props.state.geographyPaths
+    if(this.props.state.currentMap !== "world") {
+      countries = countries.filter(x => this.props.state.filterRegions.includes(x.properties.alpha3Code))
+    }
+
+    countries = countries
       .map(x => {
-        if (!x.properties.alpha2Code) { return null };
+        if(!x.properties.alpha2Code) {return null};
         let y = x.properties.alpha2Code.toString().toLowerCase()
-        return {key: y, flag: y, text: x.properties.name, value: x.properties.alpha3Code}
+        return { key: y, flag: y, text: x.properties.name, value: x.properties.alpha3Code}
       })
       .filter(x => x !== null)
-      .filter(x => !['bl', 'cw', 'gg', 'im', 'je', 'mf', 'ss', 'sx'].includes(x.key))
-      .sort((a, b) => a.text > b.text ? 1 : -1)
+      .filter(x => !['bl','cw','gg','im','je','mf','ss','sx'].includes(x.key))
+      .sort((a,b) => a.text > b.text ? 1:-1)
     
     return (
       <div className="countrySearch">
