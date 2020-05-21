@@ -22,8 +22,9 @@ import handleAnswer from "./components/handleAnswer.js"
 import handleCountryClick from "./components/handleCountryClick.js"
 import handleDoubleClick from "./components/handleDoubleClick.js"
 import { Transition } from "react-transition-group"
+import { geoPath } from "d3-geo"
 import { geoTimes } from "d3-geo-projection"
-import { DataFix } from "./helpers/attributeFix.js"
+import { DataFix, CentroidsFix } from "./helpers/attributeFix.js"
 import capitalData from "./assets/country_capitals.json"
 import { Button } from "semantic-ui-react"
 import CountrySearch from "./components/countrySearch.js"
@@ -41,7 +42,7 @@ class App extends Component {
       zoom: 1,
       defaultZoom: 1,
       scale: 210,
-      dimensions: [980, 551],
+      dimensions: [980,551],
       infoDuration: 200,
       geographyPaths: [],
       selectedProperties: "",
@@ -89,7 +90,7 @@ class App extends Component {
 
   projection() {
     return geoTimes()
-      .translate(this.state.dimensions.map(x => x / 2))
+      .translate(this.state.dimensions.map(x => x/2))
       .scale(this.state.scale)
   }
 
@@ -140,7 +141,8 @@ class App extends Component {
                 markerOffset: -7})
             }
 
-            countryMarkers.push([y["latlng"].reverse(), y["alpha3Code"]])
+            let path = geoPath().projection(this.projection())
+            countryMarkers.push([this.projection().invert(path.centroid(x)), y["alpha3Code"]])
           })
 
           DataFix(data)
@@ -148,6 +150,7 @@ class App extends Component {
           countryMarkers = countryMarkers.map(array => ({ 
             name: data.find(x => x.properties.alpha3Code === array[1]).properties.name,
             alpha3Code: array[1], coordinates: array[0], markerOffset: 0}))
+          CentroidsFix(countryMarkers)
 
           this.setState({ geographyPaths: data })
         })
