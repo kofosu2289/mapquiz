@@ -20,9 +20,9 @@ class QuestionInputBox extends Component {
   handleSubmit(e) {
     e.preventDefault();
     if (this.state.userGuess.length !== 0) {
-      let result = this.props.answerResultFunc(this.state.userGuess, this.props.testing)
-
-      this.setState({userGuess: "", answerResult: result})
+      let answerResult = this.props.answerResultFunc(this.state.userGuess, this.props.testing)
+  
+      this.setState({userGuess: "", answerResult})
     }
   }
 

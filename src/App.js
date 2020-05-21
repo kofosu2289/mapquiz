@@ -19,8 +19,7 @@ import RegionButtons from "./components/regionButtons.js"
 import QuizBox from "./components/quizBox.js"
 import ColorPicker from "./components/colorPicker.js"
 import { Transition } from "react-transition-group"
-import { geoPath } from 'd3-geo'
-import { geoTimes } from 'd3-geo-projection'
+import { geoTimes } from "d3-geo-projection"
 import { DataFix } from "./helpers/attributeFix.js"
 import capitalData from "./assets/country_capitals.json"
 
@@ -49,6 +48,7 @@ class App extends Component {
       quizType: null,
       activeQuestionNum: null,
       disableInfoClick: false,
+      viewInfoDiv: false,
     }
 
     WheelReact.config({
@@ -84,7 +84,7 @@ class App extends Component {
 
   projection() {
     return geoTimes()
-      .translate([980 / 2, 551 / 2])
+      .translate([980/2, 551/2])
       .scale(205)
   }
 
@@ -111,7 +111,7 @@ class App extends Component {
           data = data.filter(x => +x.id !== 10 ? 1:0);
 
           var essentialData = ["name", "capital", "population", "area", "flag", "alpha3Code"];
-
+          
           // Remove Ashmore Reef to prevent extra Australia label
           data.splice(11, 1)
 
@@ -124,17 +124,18 @@ class App extends Component {
 
             y["altSpellings"].shift()
 
-            x.properties.spellings = [...new Set([y["name"], ...y["altSpellings"], ...Object.values(y["translations"])])]
+            x.properties.spellings = [...new Set([y["name"],...y["altSpellings"], ...Object.values(y["translations"])])]
 
             let captemp = capitalData.find(x => x.CountryCode === y["alpha2Code"])
-            if (captemp) {
-              let capitalCoords = [+captemp.CapitalLongitude, +captemp.CapitalLatitude]
+            if(captemp) {
+              let capitalCoords = [+captemp.CapitalLongitude,+captemp.CapitalLatitude]
               
-              capitalMarkers.push({
-                name: y["capital"], alpha3Code: y["alpha3Code"],
-                coordinates: capitalCoords,
+              capitalMarkers.push({name: y["capital"], alpha3Code: y["alpha3Code"], 
+                coordinates:  capitalCoords,
                 markerOffset: -7})
             }
+
+            countryMarkers.push([y["latlng"].reverse(), y["alpha3Code"]])
           })
 
           DataFix(data)
@@ -178,32 +179,29 @@ class App extends Component {
   handleCountryClick(geo) {
     if(!this.state.disableInfoClick) {
       if(this.state.activeQuestionNum === this.state.quizGuesses.length) {
-        this.setState(prevState => {
-          let quizGuesses = [...prevState.quizGuesses];
-          quizGuesses.push(geo.properties["alpha3Code"]);
-          return ({
-            quizGuesses,
+        let result = geo.properties["alpha3Code"] === this.state.quizAnswers[this.state.activeQuestionNum]
+        this.setState(prevState => ({
+            quizGuesses: [...prevState.quizGuesses, result],
             disableOptimization: true,
             selectedProperties: geo.properties,
             viewInfoDiv: true
-          })}, () => { this.setState({ disableOptimization: false }) }
+          }), () => { this.setState({ disableOptimization: false }) }
         )
       } else {
         this.setState(prevState => ({
           disableOptimization: true,
           viewInfoDiv: !prevState.viewInfoDiv,
-        }), () => {
+          }), () => {
             let selectedProperties = this.state.selectedProperties !== geo.properties ? geo.properties : "";
             let viewInfoDiv = selectedProperties !== "";
-
             setTimeout(() => {
               this.setState({
                 disableOptimization: false,
                 selectedProperties,
                 viewInfoDiv
-              }, this.handleMapRefresh)
-            }, infoDuration)
-          })
+                }, this.handleMapRefresh)
+              },infoDuration)
+        })
       }
     }
   }
@@ -227,12 +225,13 @@ class App extends Component {
         return quizAnswers
       }, quizAnswers)
 
-    this.setState({ quizAnswers, quizType, activeQuestionNum: 0, viewInfoDiv: false }
-      , () => {
+    this.setState({quizAnswers, quizType, activeQuestionNum: 0, viewInfoDiv: false}
+      ,() => { 
+
         setTimeout(() => {
-          this.setState({ selectedProperties: ""}, this.handleMapRefresh)
+          this.setState({ selectedProperties: "" }, this.handleMapRefresh) 
         }, infoDuration)
-       })    
+      })
   }
 
   handleAnswer(userGuess = null, testing = null){
@@ -243,60 +242,48 @@ class App extends Component {
 
     if(userGuess) {
       let correctAlpha = this.state.quizAnswers[this.state.activeQuestionNum]
-
       let answer, result;
 
       answer = this.state.geographyPaths
-        .find(geo => geo.properties.alpha3Code === correctAlpha )
-        .properties;
+          .find(geo => geo.properties.alpha3Code === correctAlpha )
+          .properties;
       
-      
-      if (testing === "name") {
+      if(testing === "name") {
         answer = answer.spellings;
         result = answer.some(name => userGuess.toLowerCase() === name.toLowerCase())
       } else {
         answer = answer.capital;
-          
         result = userGuess.toLowerCase() === answer.toLowerCase()
       }
 
       text = `${userGuess} is ${result ? "correct!":"incorrect!"}`;
 
-      this.setState(prevState => {
-        let quizGuesses = [...prevState.quizGuesses];
-        quizGuesses.push([userGuess, result]);
-        return ({
-          quizGuesses,
+      this.setState(prevState => ({
+          quizGuesses: [...prevState.quizGuesses, result],
           disableOptimization: true,
-        })}, () => { this.setState({ disableOptimization: false })
-      })      
+        }), () => { this.setState({ disableOptimization: false }) }
+      )
     } else {
-      text = ans[idx] === cor[idx] ? "that is correct!":"that is incorrect!";
+      text = ans[idx] ? "that is correct!":"that is incorrect!";
     }
 
-    if (idx === cor.length) {
-      var score = ans.reduce((total, x, i) => {
-        if (x.length === 2) {
-          return total += x[1] ? 1 : 0;
-        } else {
-          return total += (x === cor[i]) * 1;
-        }
-      }, 0);
-      var scoreText = <p>Your score is {score} / {cor.length} or {Math.round(score / cor.length * 100)}%</p>
+    if(idx === cor.length){
+      var score = ans.reduce((total, x, i) => total += x*1, 0);
+      var scoreText = <p>Your score is {score} / {cor.length} or {Math.round(score/cor.length*100)}%</p>
       text = "";
     } else {
-      nextButton = <button
+      nextButton = <button 
         autoFocus
-        onClick={() => {
-          this.setState(prevState =>
+        onClick={ () => {
+          this.setState( prevState => 
             ({
               viewInfoDiv: false,
               activeQuestionNum: prevState.activeQuestionNum + 1,
               disableOptimization: true
             })
-            , () => {
+            , () => { 
               setTimeout(() => {
-                this.setState({ selectedProperties: ""}, this.handleMapRefresh)
+                this.setState({ selectedProperties: ""}, this.handleMapRefresh) 
               }, infoDuration)
             }
           )
@@ -335,34 +322,34 @@ class App extends Component {
       , () => { this.setState({ disableOptimization: false }) } )
   }
 
-  handleDoubleClick(e) {
+  handleDoubleClick(evt) {
     const width = 980;
     const height = 551;
 
     const projection = this.projection()
 
-    const svg = this.wrapper.querySelector("svg")
+    const svg = this._wrapper.querySelector("svg")
     const box = svg.getBoundingClientRect()
 
     const resizeFactorX = 1 / width * box.width
     const resizeFactorY = 1 / height * box.height
 
-    const originalCenter = [width / 2, height / 2]
+    const originalCenter = [width/2, height/2]
     const prevCenter = projection(this.state.center)
 
     const offsetX = prevCenter[0] - originalCenter[0]
     const offsetY = prevCenter[1] - originalCenter[1]
 
     const { top, left } = box
-    const clientX = (e.clientX - left) / resizeFactorX
-    const clientY = (e.clientY - top) / resizeFactorY
+    const clientX = (evt.clientX - left) / resizeFactorX
+    const clientY = (evt.clientY - top) / resizeFactorY
 
     const x = clientX + offsetX
     const y = clientY + offsetY
 
-    const center = projection.invert([x, y])
-    
-    console.log(center)
+    const center = projection.invert([x,y])
+
+    console.log(center);
   }
 
   render() {
@@ -396,8 +383,8 @@ class App extends Component {
           disableInfoClick={ this.handleDisableInfoClick }
         />        
 
-        <RegionButtons regionFunc={this.handleRegionSelect} />
-        
+        <RegionButtons regionFunc={ this.handleRegionSelect } />
+
         <Transition in={this.state.viewInfoDiv} timeout={infoDuration}>
           {(state) => {
             const defaultStyle = {
@@ -414,10 +401,9 @@ class App extends Component {
               <div style={{ ...defaultStyle, ...transitionStyles[state] }}>
                 <InfoTab country={this.state.selectedProperties}/>
               </div>
-            )
-          }}
-        </Transition>
-        
+          )}}
+        </Transition> 
+
         <div {...WheelReact.events}>
           <Motion
             defaultStyle={{
@@ -431,11 +417,12 @@ class App extends Component {
               y: spring(this.state.center[1], {stiffness: 210, damping: 20}),
             }}
           >
-            {({ zoom, x, y }) => (
+            {({zoom,x,y}) => (
+          
               <div
                 ref={wrapper => this._wrapper = wrapper}
-                // onDoubleClick = {this.handleDoubleClick}
-              >
+                // onDoubleClick={this.handleDoubleClick}
+                >
               <ComposableMap
                 projectionConfig={{ scale: 205, rotation: [-10,0,0] }}
                 width={980}
@@ -457,9 +444,9 @@ class App extends Component {
                   >
                     {(geographies, projection) => 
                       geographies.map((geography, i) => {
-                        
+
                       let defaultColor, hoverColor, render;
-                        
+
                       [defaultColor, hoverColor, render] = ColorPicker(this.state, geography)
 
                       return render && (
@@ -484,29 +471,25 @@ class App extends Component {
                             transition: "fill .5s",
                           },
                           pressed: {
-                            fill : "rgba(105, 105, 105)",
+                            fill : "rgb(105, 105, 105)",
                             transition: "fill .5s"
                           },
                         }}
                       />
                       )}
                     )}
-                    </Geographies>
-                    <Markers>
+                  </Geographies>
+                  <Markers>
                     {
                       this.state.quiz ? this.state.quizGuesses.map((gss, i) => {
-                      let display = false
-                      let marker, offset;
-                      if((this.state.quizType === "name" || this.state.quizType === "flag" ) 
-                        && (gss === this.state.quizAnswers[i])){
-                        display = true;
-                        marker = countryMarkers.find(x => x.alpha3Code === gss);
-                      } else if ((this.state.quizType === "capital") 
-                        && (gss === this.state.quizAnswers[i])) {
-                        display = true;
-                        marker = capitalMarkers.find(x => x.alpha3Code === gss);
+                      if(gss){
+                        if(this.state.quizType === "name" || this.state.quizType === "flag" ) {
+                          var marker = countryMarkers.find(x => x.alpha3Code === this.state.quizAnswers[i]);
+                        } else if (this.state.quizType === "capital") {
+                          marker = capitalMarkers.find(x => x.alpha3Code === this.state.quizAnswers[i]);
+                        }
                       }
-                      return display&&(
+                      return gss&&(
                         <Marker
                           key={i}
                           marker={marker}
@@ -539,10 +522,10 @@ class App extends Component {
                         </Marker>
                       )}
                     ):null}
-                    </Markers>
+                  </Markers>
                 </ZoomableGroup>
-                </ComposableMap>
-                </div>
+              </ComposableMap>
+              </div>
             )}
           </Motion>
         </div>
