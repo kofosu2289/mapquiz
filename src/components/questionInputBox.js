@@ -15,67 +15,63 @@ class QuestionBox extends Component {
   }
 
   handleChange(event) {
-    this.setState({userGuess: event.target.value});
+    this.setState({ userGuess: event.target.value });
   }
 
   handleSubmit(event) {
     event.preventDefault();
-    if(this.state.userGuess.length !== 0) {
+    if (this.state.userGuess.length !== 0) {
       let answerResult = this.props.handleAnswer(this.state.userGuess)
-  
-      this.setState({userGuess: "", answerResult})
+
+      this.setState({ userGuess: "", answerResult })
     }
   }
 
   render() {
-    let { quizAnswers, quizGuesses, geographyPaths, activeQuestionNum } = this.props.quizData
+    let { quizAnswers, geographyPaths, activeQuestionNum } = this.props.quizData
 
-    let [ type, testing ] = this.props.quizType.split("_");
+    let [type, testing] = this.props.quizType.split("_");
     let typeTest = type === "type";
 
-    if(activeQuestionNum === quizGuesses.length - 1) {
-      var questionBoxContent = typeTest ? this.state.answerResult: this.props.handleAnswer();
+    if (typeTest) {
+      var questionBoxContent =
+        <div>
+          <p>Enter the {testing} of the highlighted country</p>
+          <form onSubmit={this.handleSubmit}>
+            <Input type="text" autoFocus value={this.state.userGuess} onChange={this.handleChange} />
+            <Button type="submit" size="large" className="qSubmit">Submit</Button>
+          </form>
+        </div>
     } else {
-      if(typeTest){
-        questionBoxContent = 
-          <div>
-            <p>Enter the { testing } of the highlighted country</p>
-            <form onSubmit={this.handleSubmit}>
-              <Input type="text" autoFocus value={this.state.userGuess} onChange={this.handleChange} />
-              <Button type="submit" size="large" className="qSubmit">Submit</Button>
-            </form>
+      let alpha = quizAnswers[activeQuestionNum]
+      let region = geographyPaths
+        .find(x => x.properties["alpha3Code"] === alpha)
+        .properties[testing];
+
+      if (testing === "flag") {
+        region =
+          <div className="qFlag">
+            <img src={region} display="block" height="100px" border="1px solid black" alt="" />
           </div>
-      } else {
-        let alpha = quizAnswers[activeQuestionNum]
-        let region = geographyPaths
-          .find(x => x.properties["alpha3Code"] === alpha)
-          .properties[testing];
+      }
 
-        if(testing === "flag") {
-          region = 
-            <div className="qFlag">
-              <img src={region} display="block" height="100px" border="1px solid black" alt=""/>
+      if (activeQuestionNum !== quizAnswers.length) {
+        questionBoxContent =
+          <div>
+            Where is {region}?
             </div>
-        }
-
-        if(activeQuestionNum !== quizAnswers.length) {
-          questionBoxContent =
-            <div>
-              Where is {region}?
-            </div>
-        }
       }
     }
 
-    if(activeQuestionNum === quizAnswers.length) {
-      questionBoxContent = 
+    if (activeQuestionNum === quizAnswers.length) {
+      questionBoxContent =
         <div>
           {this.props.handleAnswer()}
         </div>
     }
 
     return (
-      <div className={ type === "type" ? "qInputBox":""}>
+      <div className={type === "type" ? "qInputBox" : ""}>
         {questionBoxContent}
       </div>
     )
