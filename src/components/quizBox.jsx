@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import QuestionBox from "./questionInputBox.js"
+import QuestionBox from "./questionInputBox.jsx"
 import { Button, Form, Radio, Icon } from 'semantic-ui-react'
 import './quizBox.css'
 
