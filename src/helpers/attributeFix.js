@@ -8,7 +8,6 @@ const DataFix = (geoData, data, capitalMarkers) => {
   data.find(x => x.alpha3Code === "SXM").altSpellings.push("Sint Maarten");
   data.find(x => x.alpha3Code === "VGB").altSpellings.push("British Virgin Islands");
   data.find(x => x.alpha3Code === "VIR").altSpellings.push("US Virgin Islands");
-  
   // Change display name of country to shorter variant
   ["VEN", "BOL", "GBR", "MDA", "MKD", "PSE", "SYR", "IRN", "PRK", "KOR", "LAO", "BRN", "COD", "TZA", "FSM", "BLM", "KNA", "LCA", "MAF", "SHN", "SPM", "VCT", "KOS"]
     .forEach(code => {

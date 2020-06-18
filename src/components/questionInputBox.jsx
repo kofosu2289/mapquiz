@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, Input } from 'semantic-ui-react'
+import { Button, Input } from 'semantic-ui-react';
 
 class QuestionBox extends Component {
   constructor(props) {
@@ -78,4 +78,4 @@ class QuestionBox extends Component {
   }
 }
 
-export default QuestionBox
+export default QuestionBox;
